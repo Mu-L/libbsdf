@@ -79,15 +79,17 @@ if(MSVC)
 
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3")
+    if(NOT CMAKE_SYSTEM_PROCESSOR MATCHES "arm|aarch64|ARM64")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse3")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse3")
+    endif()
 endif()
 
 option(LIBBSDF_USE_OPENMP "Use OpenMP" ON)
 if(LIBBSDF_USE_OPENMP)
     find_package(OpenMP QUIET)
     if(OPENMP_FOUND)
-        message("OpenMP found")
+        message("Found OpenMP")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
@@ -108,4 +110,7 @@ if(LIBBSDF_BUILD_APPLICATIONS)
 endif()
 
 set(CMAKE_OPTIMIZE_DEPENDENCIES ON)
-target_link_libraries(${PROJECT_NAME} PRIVATE Eigen3::Eigen ${CERES_LIB})
+target_link_libraries(${PROJECT_NAME} PRIVATE
+    Eigen3::Eigen
+    ${CERES_LIB}
+    $<$<BOOL:${OpenMP_CXX_FOUND}>:OpenMP::OpenMP_CXX>)
